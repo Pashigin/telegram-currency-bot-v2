@@ -1,9 +1,12 @@
 import sqlite3
+from utils.config import Config
+
+DB_PATH = Config.DB_PATH
 
 
-def create_tables(db_path="data/currency_data.sqlite"):
+def create_tables():
     try:
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
         # Таблица для API
@@ -39,7 +42,3 @@ def create_tables(db_path="data/currency_data.sqlite"):
         conn.close()
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
-
-
-if __name__ == "__main__":
-    create_tables()

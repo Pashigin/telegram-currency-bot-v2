@@ -1,24 +1,28 @@
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import aiohttp
 import asyncio
 from datetime import UTC, datetime
 from database.db_utils import update_api_rates
+from utils.config import Config
+from .base_collector import BaseCollector
 
-
-API_USD_URL = "https://open.er-api.com/v6/latest/USD"
-API_EUR_URL = "https://open.er-api.com/v6/latest/EUR"
+API_USD_URL = Config.API_USD_URL
+API_EUR_URL = Config.API_EUR_URL
 
 
 async def fetch_rates(session, url):
-    async with session.get(url) as response:
-        return await response.json()
+    try:
+        async with session.get(url, timeout=10) as response:
+            response.raise_for_status()
+            return await response.json()
+    except aiohttp.ClientError as e:
+        print(f"HTTP error while fetching rates from {url}: {e}")
+        return {}
+    except asyncio.TimeoutError:
+        print(f"Timeout error while fetching rates from {url}")
+        return {}
 
 
-async def collect_api_data():
+async def collect_api_data() -> None:
     try:
         async with aiohttp.ClientSession() as session:
             usd_task = fetch_rates(session, API_USD_URL)
@@ -40,6 +44,14 @@ async def collect_api_data():
             update_api_rates(batch_data)
     except Exception as e:
         print("❌ Ошибка при сборе API данных:", e)
+
+
+class APICollector(BaseCollector):
+    """Сборщик данных через API."""
+
+    async def collect_data(self) -> None:
+        """Реализация метода для сбора данных через API."""
+        await collect_api_data()  # Ensure this is awaited correctly
 
 
 # Удаляю вызов collect_api_data в блоке __main__

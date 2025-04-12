@@ -1,14 +1,13 @@
-from telebot import TeleBot, types
-import os
-from dotenv import load_dotenv
+from telebot.async_telebot import AsyncTeleBot
+from telebot import types
+from utils.config import Config
 
-load_dotenv()
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN_TEST")
+TELEGRAM_TOKEN = Config.TELEGRAM_TOKEN_TEST
 
 if TELEGRAM_TOKEN is None:
     raise ValueError("TELEGRAM_TOKEN can not be None")
 
-bot = TeleBot(TELEGRAM_TOKEN)
+bot = AsyncTeleBot(TELEGRAM_TOKEN)
 
 
 def create_markup():
