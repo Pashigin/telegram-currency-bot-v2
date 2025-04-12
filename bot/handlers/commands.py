@@ -1,6 +1,5 @@
 from bot.config import bot, create_markup
 from database.db_utils import fetch_api_rates, fetch_scrapper_rates
-import asyncio
 
 markup = create_markup()
 
@@ -75,7 +74,3 @@ async def send_help(message):
         "- Для связи @pashigin\n\n"
     )
     await bot.send_message(chat_id=message.chat.id, text=help_text)
-
-
-if __name__ == "__main__":
-    asyncio.run(bot.polling())

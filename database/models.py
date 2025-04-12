@@ -1,3 +1,9 @@
+"""
+Database models and table creation for the Telegram Currency Bot.
+
+This module defines the database schema and provides a function to create necessary tables.
+"""
+
 import sqlite3
 from utils.config import Config
 
@@ -5,6 +11,16 @@ DB_PATH = Config.DB_PATH
 
 
 def create_tables():
+    """
+    Creates the necessary database tables if they do not already exist.
+
+    Tables:
+        - api_rates: Stores official currency rates.
+        - sharaf_exchange_rates: Stores exchange rates from Sharaf Exchange.
+
+    Raises:
+        sqlite3.Error: If an error occurs during table creation.
+    """
     try:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
@@ -21,7 +37,7 @@ def create_tables():
         """)
 
         cur.execute("""
-        CREATE INDEX IF NOT EXISTS idx_currency_code ON api_rates(currency_code);
+        CREATE INDEX IF NOT EXISTS idx_api_currency_code ON api_rates(currency_code);
         """)
 
         cur.execute("""
@@ -35,7 +51,7 @@ def create_tables():
         """)
 
         cur.execute("""
-        CREATE INDEX IF NOT EXISTS idx_currency_code ON sharaf_exchange_rates(currency_code);
+        CREATE INDEX IF NOT EXISTS idx_sharaf_currency_code ON sharaf_exchange_rates(currency_code);
         """)
 
         conn.commit()

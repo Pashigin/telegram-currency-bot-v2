@@ -1,12 +1,17 @@
+import logging
+from datetime import UTC, datetime
+
 import aiohttp
 import asyncio
-from datetime import UTC, datetime
+
 from database.db_utils import update_api_rates
 from utils.config import Config
-from .base_collector import BaseCollector
 
 API_USD_URL = Config.API_USD_URL
 API_EUR_URL = Config.API_EUR_URL
+
+# Replace print statements with logging
+logger = logging.getLogger("APICollector")
 
 
 async def fetch_rates(session, url):
@@ -15,14 +20,14 @@ async def fetch_rates(session, url):
             response.raise_for_status()
             return await response.json()
     except aiohttp.ClientError as e:
-        print(f"HTTP error while fetching rates from {url}: {e}")
+        logger.error(f"HTTP error while fetching rates from {url}: {e}")
         return {}
     except asyncio.TimeoutError:
-        print(f"Timeout error while fetching rates from {url}")
+        logger.error(f"Timeout error while fetching rates from {url}")
         return {}
 
 
-async def collect_api_data() -> None:
+async def collect_api_data():
     try:
         async with aiohttp.ClientSession() as session:
             usd_task = fetch_rates(session, API_USD_URL)
@@ -43,17 +48,8 @@ async def collect_api_data() -> None:
 
             update_api_rates(batch_data)
     except Exception as e:
-        print("❌ Ошибка при сборе API данных:", e)
+        logger.error("❌ Ошибка при сборе API данных:", exc_info=e)
 
 
-class APICollector(BaseCollector):
-    """Сборщик данных через API."""
-
-    async def collect_data(self) -> None:
-        """Реализация метода для сбора данных через API."""
-        await collect_api_data()  # Ensure this is awaited correctly
-
-
-# Удаляю вызов collect_api_data в блоке __main__
 if __name__ == "__main__":
     print("This module is now used as a utility for fetching API data.")

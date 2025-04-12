@@ -1,10 +1,12 @@
+from collectors.api_collector import collect_api_data
+from collectors.scrapper_collector import collect_exchange_data
+
 import asyncio
-from services.data_processing import process_api_data, process_scrapper_data
 
 
 async def daily_job():
-    await process_api_data()
-    await process_scrapper_data()
+    await collect_api_data()
+    await collect_exchange_data()
 
 
 if __name__ == "__main__":
