@@ -54,34 +54,40 @@ def format_scrapper_currency_response(usd_rate, eur_rate):
     )
 
 
-def format_check_currency_response(
-    currency_code, api_usd_rate, api_eur_rate, scrapper_rate
-):
+def format_check_currency_response(currency_code, api_rate, scrapper_rate):
     """
-    Форматирует ответ для команды /check.
-    """
-    api_usd_response = (
-        f"1 USD = {api_usd_rate[1]:.4f} {currency_code}"
-        if isinstance(api_usd_rate, tuple) and api_usd_rate[1]
-        else f"1 USD = Не найдено {currency_code}"
-    )
-    api_eur_response = (
-        f"1 EUR = {api_eur_rate[2]:.4f} {currency_code}"
-        if isinstance(api_eur_rate, tuple) and api_eur_rate[2]
-        else f"1 EUR = Не найдено {currency_code}"
-    )
+    Formats the response for the /check command.
 
-    scrapper_response = ""
-    if scrapper_rate and all(scrapper_rate):
+    Args:
+        currency_code (str): The currency code being checked.
+        api_rate (tuple or None): A tuple containing API rates (currency_code, USD rate, EUR rate) or None.
+        scrapper_rate (tuple or None): A tuple containing scrapper rates (buy AED rate, sell AED rate) or None.
+
+    Returns:
+        str: A formatted response string.
+    """
+
+    # Format API rates
+    if api_rate:
+        usd_api, eur_api = api_rate
+        api_response = (
+            f"💵 1 USD = {usd_api:.4f} {currency_code}\n"
+            f"💶 1 EUR = {eur_api:.4f} {currency_code}"
+        )
+    else:
+        api_response = "Не найдены."
+
+    # Format scrapper rates
+    if scrapper_rate:
         scrapper_buy, scrapper_sell = scrapper_rate
         scrapper_response = (
             f"1 {currency_code} = {scrapper_buy:.4f} AED (покупка)\n"
             f"1 {currency_code} = {scrapper_sell:.4f} AED (продажа)"
         )
+    else:
+        scrapper_response = "Не найдены."
 
-    return f"Официальный курс:\n{api_usd_response}\n{api_eur_response}\n\n" + (
-        f"Курс Обменника:\n{scrapper_response}" if scrapper_response else ""
-    )
+    return f"📊 Официальный курс:\n{api_response}\n\n📊 Курс Обменника:\n{scrapper_response}"
 
 
 def format_help_message():
@@ -94,8 +100,10 @@ def format_help_message():
     return (
         "💡 Этот бот позволяет вам получать актуальные курсы валют для Дирхама ОАЭ (AED).\n\n"
         "Вы можете использовать следующие команды:\n"
-        "- Проверить оф. курсы валют (/check_rates)\n"
-        "- Проверить курс обменника Sharaf Exchange (/check_exchange)\n"
-        "- Помощь (/help)\n"
+        "/check_rates - Проверить оф. курсы валют\n"
+        "/check_exchange - Проверить курс обменника Sharaf Exchange\n"
+        "/check - Проверить определенную валюту (/check RUB)\n"
+        "/update_rates - Обновить данные в базе\n"
+        "/help - Помощь\n\n"
         "- Для связи @pashigin\n\n"
     )

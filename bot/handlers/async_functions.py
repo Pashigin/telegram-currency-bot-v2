@@ -94,8 +94,11 @@ async def get_scrapper_rates(message):
     if not usd_rate or not eur_rate:
         logger.warning("Failed to fetch scrapper rates")
 
+    usd_rate_tuple = (usd_rate[0], usd_rate[1], usd_rate[2]) if usd_rate else None
+    eur_rate_tuple = (eur_rate[0], eur_rate[1], eur_rate[2]) if eur_rate else None
+
     response = (
-        format_scrapper_currency_response(usd_rate, eur_rate)
+        format_scrapper_currency_response(usd_rate_tuple, eur_rate_tuple)
         if usd_rate and eur_rate
         else ERROR_FETCHING_SCRAPPER_RATES
     )
@@ -142,26 +145,42 @@ async def check_currency(message):
         message: The message object from the user.
     """
     logger.info(f"Executing function: {message.text}")
-    currency_code = message.text.split()[1].upper()
-    api_rate = await fetch_api_rates(currency_code)
 
-    if not api_rate:
-        logger.warning("Invalid currency code: %s", currency_code)
+    # Extract currency code or prompt user if not provided
+    try:
+        currency_code = message.text.split()[1].upper()
+    except IndexError:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text="❌ Пожалуйста, укажите код валюты после команды. Пример: /check USD",
+        )
+        return
+
+    # Fetch rates from API and scrapper
+    api_rate = await fetch_api_rates(currency_code)
+    scrapper_rate = await fetch_scrapper_rates(currency_code)
+
+    # Handle cases where currency is not found in either source
+    if not api_rate and not scrapper_rate:
+        logger.warning("Currency not found in any database: %s", currency_code)
         await bot.send_message(chat_id=message.chat.id, text=ERROR_INVALID_CURRENCY)
         return
 
-    usd_to_currency = api_rate[1]
-    eur_to_currency = api_rate[2]
-    scrapper_rate = await fetch_scrapper_rates(currency_code)
-    scrapper_buy, scrapper_sell = scrapper_rate[1:3] if scrapper_rate else (None, None)
+    # Format response based on available data
+    if api_rate:
+        usd_to_currency, eur_to_currency = api_rate[1:3]
+    else:
+        usd_to_currency = eur_to_currency = None
 
-    if not scrapper_rate:
-        logger.warning("Failed to fetch scrapper rates for currency: %s", currency_code)
+    if scrapper_rate:
+        scrapper_buy, scrapper_sell = scrapper_rate[1:3]
+    else:
+        scrapper_buy = scrapper_sell = None
 
     response = format_check_currency_response(
         currency_code,
-        (currency_code, usd_to_currency, eur_to_currency),
-        (currency_code, usd_to_currency, eur_to_currency),
-        (scrapper_buy, scrapper_sell),
+        (usd_to_currency, eur_to_currency) if api_rate else None,
+        (scrapper_buy, scrapper_sell) if scrapper_rate else None,
     )
+
     await bot.send_message(chat_id=message.chat.id, text=response)
