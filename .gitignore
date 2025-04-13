@@ -9,4 +9,17 @@ wheels/
 # Virtual environments
 .venv
 
+# Environment variables
 .env
+
+# UV
+uv.lock
+
+# IDE files
+.python-version
+
+# data
+data/
+
+# Documentation
+pytba-latest

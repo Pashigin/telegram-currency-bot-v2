@@ -1,3 +1,10 @@
+"""
+Configuration module for environment variables.
+
+This module loads environment variables using the `dotenv` package and provides
+access to configuration values such as API URLs, database paths, and Telegram tokens.
+"""
+
 import os
 from dotenv import load_dotenv
 

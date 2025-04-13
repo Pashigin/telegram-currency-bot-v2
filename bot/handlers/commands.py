@@ -1,76 +1,140 @@
-from bot.config import bot, create_markup
-from database.db_utils import fetch_api_rates, fetch_scrapper_rates
+"""
+Command handlers for the Telegram bot.
 
+This module defines the commands and their respective handlers for interacting with the bot.
+
+Functions:
+    handle_send_welcome: Handles the '/start' and '/help' commands.
+    handle_get_api_rates: Handles the command to check official currency rates.
+    handle_get_scrapper_rates: Handles the command to check exchange rates from scrappers.
+    handle_update_rates: Handles the command to update currency rates.
+    handle_send_help: Handles the 'help' command.
+    handle_check_rates_command: Handles the '/check_rates' command.
+    handle_check_exchange_command: Handles the '/check_exchange' command.
+    handle_update_rates_command: Handles the '/update_rates' command.
+    handle_check_command: Handles the '/check' command for currency conversion.
+"""
+
+from bot.config import bot, create_markup
+from utils.logger import get_logger
+from .async_functions import (
+    send_welcome,
+    get_api_rates,
+    get_scrapper_rates,
+    update_rates,
+    send_help,
+    check_currency,
+)
+
+# Initialize logger for this module
+logger = get_logger(__name__)
+
+# Create a keyboard markup for the bot's interface
 markup = create_markup()
 
 
-def format_currency_response(title, rates):
-    try:
-        usd_to_aed, eur_to_aed = rates
-        return (
-            f"📊 {title} на сегодня:\n\n"
-            f"💵 1 USD = {usd_to_aed:.4f} AED\n"
-            f"💶 1 EUR = {eur_to_aed:.4f} AED"
-        )
-    except (ValueError, TypeError) as e:
-        return f"⚠️ Произошла ошибка при обработке данных курсов валют. {e}"
-
-
 @bot.message_handler(commands=["start", "help"])
-async def send_welcome(message):
-    await bot.send_message(
-        message.chat.id,
-        "Привет! Я бот для получения курсов валют. Вот доступные команды:",
-        reply_markup=markup,
-    )
+async def handle_send_welcome(message):
+    """
+    Handles the '/start' and '/help' commands by sending a welcome message.
+
+    Args:
+        message: The message object from the user.
+    """
+    try:
+        logger.info("Handling 'start' or 'help' command.")
+        await send_welcome(message)
+    except Exception as e:
+        logger.error(f"Error in handle_send_welcome: {e}", exc_info=True)
 
 
 @bot.message_handler(func=lambda message: message.text == "Проверить оф. курсы валют")
-async def get_api_rates(message):
-    rates = await fetch_api_rates("AED")
+async def handle_get_api_rates(message):
+    """
+    Handles the command to check official currency rates.
 
-    if rates:
-        response = format_currency_response("Официальные курсы валют", rates[1:])
-    else:
-        response = "❌ Не удалось получить официальные курсы валют. Попробуйте позже."
+    Args:
+        message: The message object from the user.
+    """
+    logger.info("Handling 'check official rates' command.")
+    await get_api_rates(message)
 
-    await bot.send_message(chat_id=message.chat.id, text=response)
+
+@bot.message_handler(func=lambda message: message.text == "Проверить курс обменника")
+async def handle_get_scrapper_rates(message):
+    """
+    Handles the command to check exchange rates from scrappers.
+
+    Args:
+        message: The message object from the user.
+    """
+    logger.info("Handling 'check exchange rates' command.")
+    await get_scrapper_rates(message)
 
 
-@bot.message_handler(
-    func=lambda message: message.text == "Проверить курс обменника Sharaf Exchange"
-)
-async def get_scrapper_rates(message):
-    usd_rate = await fetch_scrapper_rates("USD")
-    eur_rate = await fetch_scrapper_rates("EUR")
+@bot.message_handler(func=lambda message: message.text == "Обновить курсы валют")
+async def handle_update_rates(message):
+    """
+    Handles the command to update currency rates.
 
-    if usd_rate and eur_rate:
-        try:
-            response = (
-                "📊 Курсы обменника на сегодня:\n\n"
-                "Покупают:\n"
-                f"💵 1 USD = {usd_rate[1]:.4f} AED\n"
-                f"💶 1 EUR = {eur_rate[1]:.4f} AED\n\n"
-                "Продают:\n"
-                f"💵 1 USD = {usd_rate[2]:.4f} AED\n"
-                f"💶 1 EUR = {eur_rate[2]:.4f} AED"
-            )
-        except (ValueError, TypeError) as e:
-            print(f"Error processing scrapper rates: {e}")
-            response = "⚠️ Произошла ошибка при обработке данных курсов обменника"
-    else:
-        response = "❌ Не удалось получить курсы обменника. Попробуйте позже."
-
-    await bot.send_message(chat_id=message.chat.id, text=response)
+    Args:
+        message: The message object from the user.
+    """
+    logger.info("Handling 'update rates' command.")
+    await update_rates(message)
 
 
 @bot.message_handler(func=lambda message: message.text == "Помощь")
-async def send_help(message):
-    help_text = (
-        "💡 Этот бот позволяет вам получать актуальные курсы валют для Дирхама ОАЭ (AED).\n\n"
-        "Вы можете использовать следующие команды:\n"
-        "- Проверить оф. курсы валют\n"
-        "- Проверить курс обменника Sharaf Exchange\n"
-        "- Для связи @pashigin\n\n"
-    )
-    await bot.send_message(chat_id=message.chat.id, text=help_text)
+async def handle_send_help(message):
+    """
+    Handles the 'help' command by sending a help message.
+
+    Args:
+        message: The message object from the user.
+    """
+    logger.info("Handling 'help' command.")
+    await send_help(message)
+
+
+@bot.message_handler(commands=["check_rates"])
+async def handle_check_rates_command(message):
+    """
+    Handles the '/check_rates' command by fetching and sending official rates.
+
+    Args:
+        message: The message object from the user.
+    """
+    await get_api_rates(message)
+
+
+@bot.message_handler(commands=["check_exchange"])
+async def handle_check_exchange_command(message):
+    """
+    Handles the '/check_exchange' command by fetching and sending exchange rates.
+
+    Args:
+        message: The message object from the user.
+    """
+    await get_scrapper_rates(message)
+
+
+@bot.message_handler(commands=["update_rates"])
+async def handle_update_rates_command(message):
+    """
+    Handles the '/update_rates' command by updating currency rates.
+
+    Args:
+        message: The message object from the user.
+    """
+    await update_rates(message)
+
+
+@bot.message_handler(commands=["check"])
+async def handle_check_command(message):
+    """
+    Handles the '/check' command for currency conversion.
+
+    Args:
+        message: The message object from the user.
+    """
+    await check_currency(message)

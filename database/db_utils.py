@@ -1,112 +1,80 @@
-import sqlite3
-from pathlib import Path
-import aiosqlite
-from contextlib import contextmanager
-from utils.config import Config
-import logging
+"""
+Database utilities module.
 
+This module provides asynchronous functions for interacting with the database,
+including updating and fetching currency rates from API and scrapper sources.
+
+Functions:
+    update_api_rates: Updates API rates in the database.
+    update_scrapper_rates: Updates scrapper rates in the database.
+    fetch_api_rates: Fetches API rates for a given currency code.
+    fetch_scrapper_rates: Fetches scrapper rates for a given currency code.
+"""
+
+from utils.config import Config
+from utils.logger import get_logger
+from database.db_helpers import update_rates, fetch_rates
+
+# Path to the SQLite database file
 DB_PATH = Config.DB_PATH
 
-# Replace print statements with logging
-logger = logging.getLogger("DBUtils")
+# Initialize logger for this module
+logger = get_logger("DBUtils")
 
 
-@contextmanager
-def get_connection():
+async def update_api_rates(data):
     """
-    Provides a context-managed SQLite connection.
-
-    Yields:
-        sqlite3.Connection: SQLite connection object.
-    """
-    Path("data").mkdir(exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    try:
-        yield conn
-    finally:
-        conn.close()
-
-
-def update_api_rates(data):
-    """
-    Updates API rates in the database.
+    Updates API rates in the database asynchronously.
 
     Args:
-        data: List of tuples containing currency code, USD rate, Euro rate, and date.
+        data (list of tuples): Each tuple contains currency code, USD rate, Euro rate, and date.
     """
     try:
-        with get_connection() as conn:
-            cur = conn.cursor()
-            for record in data:
-                currency_code, usd_to_currency, euro_to_currency, date = record
+        logger.debug(f"Data received for update: {data}")
+        filtered_data = data
 
-                # Check if data has changed
-                cur.execute(
-                    """
-                    SELECT usd_to_currency, euro_to_currency, date
-                    FROM api_rates
-                    WHERE currency_code = ?
-                    """,
-                    (currency_code,),
-                )
-                existing = cur.fetchone()
-
-                if not existing or existing != (
-                    usd_to_currency,
-                    euro_to_currency,
-                    date,
-                ):
-                    cur.execute(
-                        """
-                        INSERT INTO api_rates (currency_code, usd_to_currency, euro_to_currency, date)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT(currency_code)
-                        DO UPDATE SET 
-                            usd_to_currency = excluded.usd_to_currency,
-                            euro_to_currency = excluded.euro_to_currency,
-                            date = excluded.date
-                        """,
-                        record,
-                    )
-            conn.commit()
-    except sqlite3.Error as e:
-        logger.error(f"SQLite error: {e}")
+        if filtered_data:
+            # Update the database with the provided API rates
+            await update_rates(
+                "api_rates",
+                ["currency_code", "usd_to_currency", "euro_to_currency", "date"],
+                filtered_data,
+            )
+            logger.info(
+                f"Updated {len(filtered_data)} entries in the database for table: api_rates"
+            )
+        else:
+            logger.info("No API rates were updated.")
+        return []
+    except Exception as e:
+        # Log any errors that occur during the update operation
+        logger.error(f"Error in update_api_rates: {e}", exc_info=True)
 
 
-def update_scrapper_rates(data):
-    try:
-        with get_connection() as conn:
-            cur = conn.cursor()
-            for record in data:
-                currency_code, buy_aed, sell_aed, date = record
+async def update_scrapper_rates(data):
+    """
+    Updates scrapper rates in the database asynchronously.
 
-                # Check if data has changed
-                cur.execute(
-                    """
-                    SELECT buy_aed, sell_aed, date
-                    FROM sharaf_exchange_rates
-                    WHERE currency_code = ?
-                    """,
-                    (currency_code,),
-                )
-                existing = cur.fetchone()
+    Args:
+        data (list of tuples): Each tuple contains currency code, buy AED rate, sell AED rate, and date.
+    """
+    filtered_data = data
 
-                if not existing or existing != (buy_aed, sell_aed, date):
-                    cur.execute(
-                        """
-                        INSERT INTO sharaf_exchange_rates (currency_code, buy_aed, sell_aed, date)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT(currency_code)
-                        DO UPDATE SET 
-                            buy_aed = excluded.buy_aed,
-                            sell_aed = excluded.sell_aed,
-                            date = excluded.date
-                        """,
-                        record,
-                    )
-            conn.commit()
-    except sqlite3.Error as e:
-        logger.error(f"SQLite error: {e}")
+    if filtered_data:
+        logger.info(
+            f"Updating scrapper rates: {len(filtered_data)} currencies to update."
+        )
+        # Update the database with the provided scrapper rates
+        await update_rates(
+            "sharaf_exchange_rates",
+            ["currency_code", "buy_aed", "sell_aed", "date"],
+            filtered_data,
+        )
+        logger.info(
+            f"Updated {len(filtered_data)} entries in the database for table: sharaf_exchange_rates"
+        )
+    else:
+        logger.info("No scrapper rates were updated.")
 
 
 async def fetch_api_rates(currency_code):
@@ -114,31 +82,32 @@ async def fetch_api_rates(currency_code):
     Fetches API rates for a given currency code.
 
     Args:
-        currency_code: The currency code to fetch rates for.
+        currency_code (str): The currency code to fetch rates for.
 
     Returns:
-        A tuple containing currency code, USD rate, and Euro rate, or None if an error occurs.
+        tuple: A tuple containing currency code, USD rate, and Euro rate, or None if no data is found.
     """
-    try:
-        async with aiosqlite.connect(DB_PATH) as conn:
-            async with conn.execute(
-                "SELECT currency_code, usd_to_currency, euro_to_currency FROM api_rates WHERE currency_code = ?",
-                (currency_code,),
-            ) as cursor:
-                return await cursor.fetchone()
-    except aiosqlite.Error as e:
-        logger.error(f"SQLite error: {e}")
-        return None
+    return await fetch_rates(
+        "api_rates",
+        ["currency_code", "usd_to_currency", "euro_to_currency"],
+        "currency_code",
+        currency_code,
+    )
 
 
 async def fetch_scrapper_rates(currency_code):
-    try:
-        async with aiosqlite.connect(DB_PATH) as conn:
-            async with conn.execute(
-                "SELECT currency_code, buy_aed, sell_aed FROM sharaf_exchange_rates WHERE currency_code = ?",
-                (currency_code,),
-            ) as cursor:
-                return await cursor.fetchone()
-    except aiosqlite.Error as e:
-        logger.error(f"SQLite error: {e}")
-        return None
+    """
+    Fetches scrapper rates for a given currency code.
+
+    Args:
+        currency_code (str): The currency code to fetch rates for.
+
+    Returns:
+        tuple: A tuple containing currency code, buy AED rate, and sell AED rate, or None if no data is found.
+    """
+    return await fetch_rates(
+        "sharaf_exchange_rates",
+        ["currency_code", "buy_aed", "sell_aed"],
+        "currency_code",
+        currency_code,
+    )

@@ -1,57 +1,57 @@
 # Telegram Currency Bot
 
-## Описание
-Telegram Currency Bot — это бот для отслеживания курсов валют. Он предоставляет актуальные данные о курсах валют через официальные источники и обменники, такие как Sharaf Exchange.
+## Description
+Telegram Currency Bot is a tool for tracking currency exchange rates. It provides up-to-date exchange rate data from official sources and exchange services like Sharaf Exchange.
 
-## Основные возможности
-- Получение официальных курсов валют.
-- Получение курсов валют из обменника Sharaf Exchange.
-- Удобный интерфейс с кнопками для взаимодействия.
+## Features
+- Retrieve official currency exchange rates.
+- Fetch exchange rates from Sharaf Exchange.
+- User-friendly interface with interactive buttons.
 
-## Установка и запуск
+## Installation and Setup
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
    ```bash
    git clone <URL>
    cd telegram-currency-bot
    ```
 
-2. Установите зависимости:
+2. Install the dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Создайте файл `.env` в корне проекта и добавьте переменные окружения:
+3. Create a `.env` file in the project root and add the required environment variables:
    ```env
-   TELEGRAM_TOKEN=ваш_токен
+   TELEGRAM_TOKEN=your_telegram_bot_token
    ```
 
-4. Запустите бота:
+4. Start the bot:
    ```bash
    python main.py
    ```
 
-## Структура проекта
-- `main.py` — точка входа для запуска бота.
-- `bot/` — обработчики команд Telegram.
-  - `config/` — конфигурация и инициализация бота.
-  - `handlers/` — обработчики команд.
-- `collectors/` — модули для сбора данных.
-  - `api_collector.py` — сбор данных через API.
-  - `scrapper_collector.py` — сбор данных через веб-скрапинг.
-- `database/` — работа с базой данных.
-  - `models.py` — создание таблиц базы данных.
-  - `db_utils.py` — утилиты для работы с базой данных.
-- `jobs/` — периодические задачи.
-- `utils/` — вспомогательные модули.
-  - `config.py` — конфигурация проекта.
-  - `logger.py` — настройка логирования.
+## Project Structure
+- `main.py` — Entry point for running the bot.
+- `bot/` — Telegram command handlers.
+  - `config/` — Bot configuration and initialization.
+  - `handlers/` — Command handlers.
+- `collectors/` — Modules for data collection.
+  - `api_collector.py` — Collect data via APIs.
+  - `scrapper_collector.py` — Collect data via web scraping.
+- `database/` — Database management.
+  - `models.py` — Database table definitions.
+  - `db_utils.py` — Utilities for database operations.
+- `jobs/` — Scheduled tasks.
+- `utils/` — Utility modules.
+  - `config.py` — Project configuration.
+  - `logger.py` — Logging setup.
 
-## Пример использования
-После запуска бота введите одну из доступных команд:
-- `/start` — для начала работы с ботом.
-- `/help` — для получения списка доступных команд.
-- Нажмите на кнопки в интерфейсе для получения курсов валют.
+## Usage Example
+After starting the bot, use one of the available commands:
+- `/start` — Begin interacting with the bot.
+- `/help` — Get a list of available commands.
+- Use the interactive buttons to fetch currency exchange rates.
 
-## Лицензия
-Этот проект распространяется под лицензией MIT.
+## License
+This project is licensed under the MIT License.
