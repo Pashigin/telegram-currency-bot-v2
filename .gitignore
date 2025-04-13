@@ -13,7 +13,7 @@ wheels/
 .env
 
 # UV
-uv.lock
+uv
 
 # IDE files
 .python-version
@@ -23,3 +23,9 @@ data/
 
 # Documentation
 pytba-latest
+
+# OS files
+.DS_Store
+
+# gitignore
+.gitignore
