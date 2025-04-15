@@ -12,14 +12,16 @@ from datetime import UTC, datetime
 import aiohttp
 import asyncio
 from utils.config import Config
-from utils.logger import get_logger
+from utils.logger import (
+    get_logger,
+)  # Import directly from utils.logger instead of collectors
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 # API endpoints for fetching currency rates
 API_USD_URL = Config.API_USD_URL
 API_EUR_URL = Config.API_EUR_URL
-
-# Initialize logger for this module
-logger = get_logger("APICollector")
 
 
 async def fetch_rates(session, url):
@@ -77,10 +79,6 @@ async def collect_api_data():
         batch_data = tuple(
             (currency_code, to_usd, eur_rates.get(currency_code, None), today)
             for currency_code, to_usd in usd_rates.items()
-        )
-
-        logger.info(
-            f"Successfully prepared batch data with {len(batch_data)} entries for database update."
         )
 
         return batch_data

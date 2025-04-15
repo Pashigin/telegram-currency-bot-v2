@@ -1,14 +1,16 @@
 """
-Entry point for the Telegram Currency Bot.
+Main entry point for Telegram Currency Bot.
 
-This script initializes the bot and starts polling for messages.
+This script initializes the Telegram bot for retrieving currency rates,
+creates the necessary database tables, and starts the process
+of listening for user messages.
 """
 
 import asyncio
 import sys
-from utils.logger import get_logger
 from bot.handlers.commands import bot
 from database.models import create_tables
+from utils.logger import get_logger
 
 # Initialize logger for the main script
 logger = get_logger("Main")

@@ -1,0 +1,50 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Development and IDE files
+.git/
+.github/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Log files
+*.log
+logs/
+
+# Local data files
+data/currency_data.sqlite
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Test files
+tests/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Other unnecessary files
+.DS_Store
+.gitignore

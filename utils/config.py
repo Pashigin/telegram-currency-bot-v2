@@ -12,6 +12,13 @@ load_dotenv()
 
 
 class Config:
+    """
+    Configuration class for storing application settings.
+
+    All configuration values are loaded from environment variables,
+    with defaults provided for some values.
+    """
+
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
     TELEGRAM_TOKEN_TEST = os.getenv("TELEGRAM_TOKEN_TEST")
     DB_PATH = os.getenv("DB_PATH", "data/currency_data.sqlite")

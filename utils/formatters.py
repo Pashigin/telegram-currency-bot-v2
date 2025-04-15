@@ -9,8 +9,6 @@ Functions:
     format_error_message: Formats an error message for the bot.
 """
 
-# This module contains formatting functions for currency responses.
-
 
 def format_api_currency_response(rates):
     """

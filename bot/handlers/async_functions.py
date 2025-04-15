@@ -12,7 +12,8 @@ Functions:
     check_currency: Checks and sends currency conversion rates.
 """
 
-from bot.config import bot
+from ..config import bot
+from .. import logger
 from database.db_utils import fetch_api_rates, fetch_scrapper_rates
 from jobs.daily_job import daily_job
 from utils.formatters import (
@@ -21,10 +22,6 @@ from utils.formatters import (
     format_help_message,
     format_check_currency_response,
 )
-from utils.logger import get_logger
-
-# Initialize logger for this module
-logger = get_logger(__name__)
 
 # Placeholder for keyboard markup, if needed
 markup = None

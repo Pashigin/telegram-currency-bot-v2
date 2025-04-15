@@ -11,15 +11,17 @@ Functions:
     fetch_scrapper_rates: Fetches scrapper rates for a given currency code.
 """
 
+from database.db_helpers import fetch_rates, update_rates
 from utils.config import Config
-from utils.logger import get_logger
-from database.db_helpers import update_rates, fetch_rates
+from utils.logger import (
+    get_logger,
+)  # Import directly from utils.logger instead of database
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 # Path to the SQLite database file
 DB_PATH = Config.DB_PATH
-
-# Initialize logger for this module
-logger = get_logger("DBUtils")
 
 
 async def update_api_rates(data):
@@ -40,9 +42,7 @@ async def update_api_rates(data):
                 ["currency_code", "usd_to_currency", "euro_to_currency", "date"],
                 filtered_data,
             )
-            logger.info(
-                f"Updated {len(filtered_data)} entries in the database for table: api_rates"
-            )
+            # No need to log here as it's already logged in update_rates
         else:
             logger.info("No API rates were updated.")
         return []
@@ -58,21 +58,17 @@ async def update_scrapper_rates(data):
     Args:
         data (list of tuples): Each tuple contains currency code, buy AED rate, sell AED rate, and date.
     """
-    filtered_data = data
 
-    if filtered_data:
-        logger.info(
-            f"Updating scrapper rates: {len(filtered_data)} currencies to update."
-        )
+    if data:
+        # Log only at debug level to avoid duplication with db_helpers
+        logger.debug(f"Updating scrapper rates: {len(data)} currencies to update.")
         # Update the database with the provided scrapper rates
         await update_rates(
             "sharaf_exchange_rates",
             ["currency_code", "buy_aed", "sell_aed", "date"],
-            filtered_data,
+            data,
         )
-        logger.info(
-            f"Updated {len(filtered_data)} entries in the database for table: sharaf_exchange_rates"
-        )
+        # No need to log here as it's already logged in update_rates
     else:
         logger.info("No scrapper rates were updated.")
 

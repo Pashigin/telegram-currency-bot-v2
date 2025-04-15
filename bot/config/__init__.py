@@ -13,10 +13,10 @@ Functions:
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 from utils.config import Config
-import logging
+from utils.logger import get_logger
 
 # Initialize logger for this module
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 try:
     # Retrieve the Telegram token from the configuration

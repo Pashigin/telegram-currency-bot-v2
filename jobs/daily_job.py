@@ -7,19 +7,14 @@ Functions:
     daily_job: Collects currency data from APIs and scrapers, then updates the database.
 """
 
-import sys
-import os
+import asyncio
 from collectors.api_collector import collect_api_data
 from collectors.scrapper_collector import collect_exchange_data
-from utils.logger import get_logger
 from database.db_utils import update_api_rates, update_scrapper_rates
-import asyncio
+from utils.logger import get_logger  # Import directly from utils.logger instead of jobs
 
-# Ensure the module directory is in the import path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-# Initialize logger for this module
-logger = get_logger("DailyJob")
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 async def daily_job():
@@ -39,7 +34,7 @@ async def daily_job():
         if api_data:
             await update_api_rates(api_data)
 
-        # Collect and update scrapper data
+        # Collect scraper data and update the database
         scrapper_data = await collect_exchange_data()
         if scrapper_data:
             await update_scrapper_rates(scrapper_data)
@@ -54,6 +49,8 @@ async def daily_job():
         logger.error(f"Error in daily_job: {e}", exc_info=True)
 
 
+# Add this block to run the async function when the script is executed directly
 if __name__ == "__main__":
-    # Run the daily job when executed as a script
+    logger.info("Daily job script started")
     asyncio.run(daily_job())
+    logger.info("Daily job script finished")

@@ -15,8 +15,8 @@ Functions:
     handle_check_command: Handles the '/check' command for currency conversion.
 """
 
-from bot.config import bot, create_markup
-from utils.logger import get_logger
+from ..config import bot, create_markup
+from .. import logger
 from .async_functions import (
     send_welcome,
     get_api_rates,
@@ -25,9 +25,6 @@ from .async_functions import (
     send_help,
     check_currency,
 )
-
-# Initialize logger for this module
-logger = get_logger(__name__)
 
 # Create a keyboard markup for the bot's interface
 markup = create_markup()

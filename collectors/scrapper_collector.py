@@ -1,33 +1,30 @@
 """
 Module for collecting currency data via web scraping.
 
-This module scrapes exchange rates from a configured website and updates the database.
+This module scrapes exchange rates from a configured website and returns the data.
 
 Functions:
-    collect_exchange_data: Scrapes exchange rates and updates the database.
+    collect_exchange_data: Scrapes exchange rates and returns the data.
 """
 
-import sys
-import os
 from datetime import UTC, datetime
 from playwright.async_api import async_playwright
-from database.db_utils import update_scrapper_rates
 from utils.config import Config
-from utils.logger import get_logger
+from utils.logger import (
+    get_logger,
+)  # Import directly from utils.logger instead of collectors
 
-# Ensure the module directory is in the import path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-# Initialize logger for this module
-logger = get_logger("ScrapperCollector")
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 async def collect_exchange_data():
     """
-    Scrapes exchange rates from a configured website and updates the database.
+    Scrapes exchange rates from a configured website.
 
     Returns:
         list: A list of tuples containing currency data for database insertion.
+        Returns None if an error occurs.
     """
     try:
         async with async_playwright() as p:
@@ -71,7 +68,7 @@ async def collect_exchange_data():
 
             # Sort and log the collected rates
             sorted_rates = dict(sorted(rates.items()))
-            logger.info(f"✅ Collected {len(sorted_rates)} currencies")
+            logger.info(f"Collected {len(sorted_rates)} currencies")
 
             # Prepare data for database insertion
             today = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
@@ -81,21 +78,11 @@ async def collect_exchange_data():
             ]
 
             logger.debug(f"Collected rates: {rates}")
-            logger.debug(f"Database data to update: {db_data}")
+            logger.debug(f"Database data prepared: {db_data}")
 
-            # Update the database with the collected data
-            await update_scrapper_rates(db_data)
             await browser.close()
-
-        return db_data
+            return db_data
     except Exception as e:
         # Log any errors that occur during data collection
         logger.error(f"An error occurred during data collection: {e}", exc_info=True)
         return None
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    # Run the data collection function when executed as a script
-    asyncio.run(collect_exchange_data())

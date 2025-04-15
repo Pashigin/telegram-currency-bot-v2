@@ -1,7 +1,11 @@
 """
-Logger configuration for the Telegram Currency Bot.
+Logger configuration module for Telegram Currency Bot.
 
-This module provides a utility function to get a pre-configured logger instance.
+This module provides a function for getting a preconfigured logger instance
+that outputs information both to the console and to a file.
+
+Functions:
+    get_logger: Returns a configured logger instance.
 """
 
 import logging
@@ -9,7 +13,7 @@ import logging
 
 def get_logger(name, log_file="bot.log", level=logging.INFO):
     """
-    Returns a configured logger instance that logs to both console and file.
+    Returns a configured logger instance with output to console and file.
 
     Args:
         name (str): The name of the logger.
@@ -20,17 +24,21 @@ def get_logger(name, log_file="bot.log", level=logging.INFO):
         logging.Logger: A configured logger instance.
     """
     logger = logging.getLogger(name)
-    if not logger.hasHandlers():
-        logger.setLevel(level)
+    logger.setLevel(level)
 
-        # Console handler
+    # Prevent logs from being passed to the root logger to avoid duplication
+    logger.propagate = False
+
+    # Add handlers only if they don't already exist
+    if not logger.handlers:
+        # Handler for console output
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         logger.addHandler(console_handler)
 
-        # File handler
+        # Handler for file output
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")

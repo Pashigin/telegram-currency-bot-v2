@@ -17,7 +17,7 @@ from utils.logger import get_logger
 DB_PATH = Config.DB_PATH
 
 # Initialize logger for this module
-logger = get_logger("DBHelpers")
+logger = get_logger(__name__)
 
 
 async def update_rates(table_name, columns, data):
@@ -75,10 +75,9 @@ async def fetch_rates(table_name, columns, condition_column, condition_value):
         async with conn.execute(query, (condition_value,)) as cursor:
             result = await cursor.fetchone()
 
-            # Log the fetched data and condition
-            logger.info(
-                f"Successfully fetched data for condition: {condition_column} = {condition_value}"
+            # Log at debug level instead of info to reduce log noise
+            logger.debug(
+                f"Fetched data for condition: {condition_column} = {condition_value}, Result: {result}"
             )
-            logger.debug(f"Fetched result: {result}")
 
             return result

@@ -12,5 +12,5 @@ dependencies = [
     "playwright>=1.51.0",
     "pytelegrambotapi>=4.26.0",
     "requests>=2.32.3",
-    "sqlalchemy>=2.0.40",
+    "sqlalchemy>=2.0.40"
 ]
