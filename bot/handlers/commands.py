@@ -15,9 +15,9 @@ Functions:
     handle_check_command: Handles the '/check' command for currency conversion.
 """
 
-from ..config import bot, create_markup
-from .. import logger
-from .async_functions import (
+from bot.config import bot, create_markup
+from bot import logger
+from bot.handlers.async_functions import (
     send_welcome,
     get_api_rates,
     get_scrapper_rates,

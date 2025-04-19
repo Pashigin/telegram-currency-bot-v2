@@ -26,13 +26,18 @@ async def collect_exchange_data():
         list: A list of tuples containing currency data for database insertion.
         Returns None if an error occurs.
     """
-    browser = None
     try:
         async with async_playwright() as p:
-            # Launch browser as a context manager to ensure it closes properly
-            browser = await p.chromium.launch(headless=True)
-            async with browser:
+            # Launch browser with explicit browser close handling and 10-minute timeout
+            browser = await p.chromium.launch(
+                headless=True,
+                timeout=600000,  # 10 minutes in milliseconds
+            )
+            page = None
+            try:
+                # Set page timeout to 10 minutes as well
                 page = await browser.new_page()
+                page.set_default_timeout(600000)  # 10 minutes in milliseconds
 
                 # Navigate to the configured URL and wait for the page to load
                 await page.goto(Config.SCRAPPER_URL, wait_until="networkidle")
@@ -85,16 +90,14 @@ async def collect_exchange_data():
                 logger.debug(f"Database data prepared: {db_data}")
 
                 return db_data
+            finally:
+                # Ensure browser and contexts are closed properly
+                if page:
+                    await page.close()
+                    logger.debug("Page closed successfully")
+                await browser.close()
+                logger.debug("Browser closed successfully")
     except Exception as e:
         # Log any errors that occur during data collection
         logger.error(f"An error occurred during data collection: {e}", exc_info=True)
-        # Try to close browser if it exists and is still open
-        if browser:
-            try:
-                await browser.close()
-                logger.debug("Browser closed in exception handler")
-            except Exception as close_error:
-                logger.error(
-                    f"Error closing browser in exception handler: {close_error}"
-                )
         return None
