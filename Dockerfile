@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Добавление cron-задания для daily_job.py каждую минуту (для тестирования)
 RUN apt-get update && apt-get install -y --no-install-recommends cron \
-    && echo "* 3 * * * cd /app && PYTHONPATH=/app /usr/local/bin/python /app/jobs/daily_job.py >> /var/log/cron.log 2>&1" > /etc/cron.d/daily_job \
+    && echo "0 3 * * * cd /app && PYTHONPATH=/app /usr/local/bin/python /app/jobs/daily_job.py >> /var/log/cron.log 2>&1" > /etc/cron.d/daily_job \
     && chmod 0644 /etc/cron.d/daily_job \
     && crontab /etc/cron.d/daily_job \
     && touch /var/log/cron.log \
